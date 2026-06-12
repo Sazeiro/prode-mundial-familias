@@ -393,9 +393,12 @@ async function supabaseCall(method, table, query='', data=null) {
       }
     };
     if(data) opts.body = JSON.stringify(data);
+    if(method === 'POST' && data) opts.headers['Prefer'] = 'return=representation';
     const res = await fetch(url, opts);
     if(!res.ok) { console.error(`Supabase ${method} ${table}:`, res.status, await res.text()); return null; }
-    return await res.json();
+    if(res.status === 204) return true;
+    const text = await res.text();
+    return text ? JSON.parse(text) : true;
   } catch(e) { console.error('Supabase call error:', e); return null; }
 }
 
@@ -683,7 +686,7 @@ async function join(){
   if(!v){ toast("Escribí tu nombre"); return; }
   me={ id: Date.now().toString(36)+Math.random().toString(36).slice(2,7), name:v };
   const res = await supabaseCall('POST', 'players', '', {id:me.id, name:me.name});
-  if(!res){ toast("Error al crear jugador"); return; }
+  if(res === null){ toast("Error al crear jugador, intentá de nuevo"); return; }
   localStorage.setItem("me", JSON.stringify(me));
   myPicks={};
   await loadShared();
