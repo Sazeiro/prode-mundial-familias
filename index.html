@@ -73,8 +73,8 @@
   }
   nav.tabs button{
     flex:1;border:0;background:transparent;color:var(--txt2);
-    font-family:'Inter';font-weight:700;font-size:12.5px;letter-spacing:.2px;
-    padding:9px 4px;border-radius:9px;cursor:pointer;transition:.15s;
+    font-family:'Inter';font-weight:700;font-size:11.5px;letter-spacing:0;
+    padding:9px 2px;border-radius:9px;cursor:pointer;transition:.15s;
   }
   nav.tabs button.active{background:var(--amber);color:#1a1305;box-shadow:0 3px 12px rgba(245,166,35,.28)}
 
@@ -260,6 +260,64 @@
   .ares .ap.clear{font-size:13px;font-family:'Inter';font-weight:700}
   .ares .ap.clear.sel{background:var(--surface2);color:var(--txt);border-color:var(--border2)}
 
+  /* ---------- PREMIOS ---------- */
+  .prizehero{
+    position:relative;overflow:hidden;text-align:center;
+    background:radial-gradient(120% 120% at 50% 0%, #1c2c1e 0%, var(--surface) 58%);
+    border:1px solid var(--border2);border-radius:18px;
+    padding:26px 16px 24px;margin-top:6px;min-height:300px;
+  }
+  .moneyrain{position:absolute;inset:0;pointer-events:none;z-index:0}
+  .bill{position:absolute;top:-40px;animation-name:fall;animation-iteration-count:infinite;animation-timing-function:linear}
+  @keyframes fall{
+    0%{transform:translateY(-40px) rotate(0deg);opacity:0}
+    12%{opacity:.95}
+    88%{opacity:.95}
+    100%{transform:translateY(370px) rotate(340deg);opacity:0}
+  }
+  .trophy{position:relative;z-index:1;font-size:60px;animation:trophy 2.2s ease-in-out infinite;filter:drop-shadow(0 0 16px rgba(245,166,35,.55))}
+  @keyframes trophy{0%,100%{transform:translateY(0) rotate(-5deg)}50%{transform:translateY(-9px) rotate(5deg)}}
+  .prizetitle{
+    position:relative;z-index:1;font-family:'Bebas Neue';font-size:56px;letter-spacing:3px;margin:2px 0 14px;
+    background:linear-gradient(90deg,#F5A623,#FFE066,#00C46A,#FFE066,#F5A623);
+    background-size:200% auto;-webkit-background-clip:text;background-clip:text;color:transparent;
+    animation:shine 3s linear infinite;
+  }
+  @keyframes shine{to{background-position:200% center}}
+  .sponsorcard{
+    position:relative;z-index:1;background:rgba(11,18,32,.72);border:1px solid var(--border2);
+    border-radius:14px;padding:14px 16px;margin:0 auto 14px;max-width:360px;
+  }
+  .sponsorcard .spon-emoji{font-size:26px;margin-bottom:4px;animation:wob 2.5s ease-in-out infinite}
+  @keyframes wob{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(7deg)}}
+  .sponsorcard p{font-size:14px;color:var(--txt);line-height:1.5;margin:0}
+  .gracias{font-family:'Bebas Neue';font-size:25px;letter-spacing:1px;color:var(--amber);display:inline-block;margin-top:5px}
+  .prizebox{position:relative;z-index:1;margin:0 auto 16px;max-width:360px}
+  .prizelabel{font-size:11px;color:var(--txt2);text-transform:uppercase;letter-spacing:2px}
+  .prizeamount{font-family:'Bebas Neue';font-size:31px;letter-spacing:.5px;color:var(--green);margin-top:3px;text-shadow:0 0 20px rgba(0,196,106,.45)}
+  .prizemoney{font-size:36px;margin-top:4px;animation:pop 1.4s ease-in-out infinite}
+  @keyframes pop{0%,100%{transform:scale(1)}50%{transform:scale(1.16)}}
+  .votenudge{
+    position:relative;z-index:1;display:inline-block;background:var(--amber);color:#1a1305;
+    font-weight:800;font-size:14px;padding:11px 20px;border-radius:99px;
+    box-shadow:0 6px 22px rgba(245,166,35,.45);animation:nudge 1.6s ease-in-out infinite;
+  }
+  @keyframes nudge{0%,100%{transform:scale(1) rotate(-1.5deg)}50%{transform:scale(1.07) rotate(1.5deg)}}
+
+  .thanksbox{margin-top:18px}
+  .thankstitle{font-family:'Bebas Neue';font-size:22px;letter-spacing:1px;text-align:center;margin:0 0 12px;color:var(--txt)}
+  .thanksinput{display:flex;gap:8px;margin-bottom:14px}
+  .thanksinput input{flex:1;text-align:left}
+  .thanksbtn{width:auto;padding:0 18px;border-radius:12px;white-space:nowrap;font-size:14px}
+  .thankslist{display:flex;flex-direction:column;gap:8px}
+  .thankmsg{
+    background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--amber);
+    border-radius:10px;padding:10px 12px;animation:fade .3s ease;
+  }
+  .thankmsg .tn{display:block;font-size:11px;font-weight:800;color:var(--amber);margin-bottom:2px}
+  .thankmsg .tm{font-size:13.5px;color:var(--txt);line-height:1.4;word-break:break-word}
+  .thanksempty{text-align:center;color:var(--txt3);font-size:13px;padding:18px}
+
   /* ---------- TOAST ---------- */
   #toast{
     position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);
@@ -363,7 +421,7 @@ const M = [
 ].map(a=>({id:a[0],group:a[1],home:a[2],away:a[3],ko:a[4]}));
 
 const PTS_WIN = 3;
-const ALWAYS_OPEN = ["g01","g02"];
+const ALWAYS_OPEN = [];
 
 /* ============================================================
    STATE
@@ -376,6 +434,7 @@ let results = {};
 let tab = "prode";
 let isAdmin = false;
 let openOthers = {};
+let thanks = [];
 
 /* ============================================================
    SUPABASE API CALLS
@@ -413,6 +472,7 @@ async function loadShared() {
   const res = await supabaseCall('GET', 'results', '?select=match_id,result') || [];
   results = {};
   for(const r of res) results[r.match_id] = r.result;
+  thanks = await supabaseCall('GET', 'thanks', '?select=*&order=created_at.desc') || [];
 }
 
 /* ============================================================
@@ -458,6 +518,7 @@ function render(){
   if(tab==="prode") html += viewProde();
   else if(tab==="fixture") html += viewFixture();
   else if(tab==="tabla") html += viewTabla();
+  else if(tab==="premios") html += viewPremios();
   else if(tab==="admin") html += viewAdmin();
   html += `<div class="floatbtn"><button onclick="refresh(this)"><span id="rfi">⟳</span> Actualizar</button></div>`;
   app.innerHTML = html;
@@ -471,7 +532,7 @@ function headerHTML(){
       <div class="whoami" onclick="logout()" title="Cambiar de jugador">👤 <b>${esc(me.name)}</b></div>
     </div>
     <p class="tagline">Pronosticá 1 · X · 2 — ${PTS_WIN} puntos por acierto</p>
-    <nav class="tabs">${t('prode','MI PRODE')}${t('fixture','FIXTURE')}${t('tabla','POSICIONES')}${t('admin','⚙')}</nav>
+    <nav class="tabs">${t('prode','PRODE')}${t('fixture','FIXTURE')}${t('tabla','TABLA')}${t('premios','PREMIOS')}${t('admin','⚙')}</nav>
   </header><div class="wrap">`;
 }
 
@@ -675,11 +736,65 @@ function viewAdmin(){
   return html+`</div>`;
 }
 
+/* ---------- VIEW: PREMIOS ---------- */
+function viewPremios(){
+  const emojis=['\u{1F4B8}','\u{1F911}','\u{1F4B5}','\u{1F4B0}','\u{1FA99}'];
+  let rain='';
+  for(let i=0;i<15;i++){
+    const e=emojis[i%emojis.length];
+    const left=(i*6.7+3)%100;
+    const dur=(4+(i%5)).toFixed(1);
+    const delay=(i*0.35).toFixed(2);
+    const size=18+(i%4)*6;
+    rain+=`<span class="bill" style="left:${left}%;animation-duration:${dur}s;animation-delay:${delay}s;font-size:${size}px">${e}</span>`;
+  }
+  let msgs = thanks.map(t=>`<div class="thankmsg"><span class="tn">${esc(t.name||'An\u00f3nimo')}</span><span class="tm">${esc(t.message)}</span></div>`).join('');
+  if(!thanks.length) msgs=`<div class="thanksempty">Todav\u00eda nadie agradeci\u00f3\u2026 \u00a1romp\u00e9 el hielo! \u{1F64F}</div>`;
+
+  return `<div class="prizehero">
+    <div class="moneyrain">${rain}</div>
+    <div class="trophy">\u{1F3C6}</div>
+    <h2 class="prizetitle">PREMIOS</h2>
+    <div class="sponsorcard">
+      <div class="spon-emoji">\u{1F3A9}\u2728</div>
+      <p>El premio est\u00e1 sponsoreado por el <b>mecenas familiar</b>.<br><span class="gracias">\u00a1Gracias Dr. Marone!</span></p>
+    </div>
+    <div class="prizebox">
+      <div class="prizelabel">El ganador se lleva</div>
+      <div class="prizeamount">unos verdes bien crocantes</div>
+      <div class="prizemoney">\u{1F911}\u{1F911}\u{1F911}</div>
+    </div>
+    <div class="votenudge">Yo que vos voto, no seas bobi \u{1F60F}</div>
+  </div>
+  <div class="thanksbox">
+    <h3 class="thankstitle">Agradecele a Maroni por el premio \u{1F64F}</h3>
+    <div class="thanksinput">
+      <input id="thanksInput" type="text" placeholder="Escrib\u00ed tu mensaje\u2026" maxlength="140" autocomplete="off" onkeydown="if(event.key==='Enter')sendThanks()">
+      <button class="btn btn-amber thanksbtn" onclick="sendThanks()">Enviar</button>
+    </div>
+    <div class="thankslist">${msgs}</div>
+  </div></div>`;
+}
+
 /* ============================================================
    ACTIONS
    ============================================================ */
 function go(t){ tab=t; window.scrollTo(0,0); render(); }
 function toggleOthers(id){ openOthers[id]=!openOthers[id]; render(); }
+
+async function sendThanks(){
+  if(!me){ toast('Entr\u00e1 con tu nombre primero'); return; }
+  const inp=document.getElementById('thanksInput');
+  const v=inp.value.trim();
+  if(!v){ toast('Escrib\u00ed un mensaje \u{1F642}'); return; }
+  const row={ id: Date.now().toString(36)+Math.random().toString(36).slice(2,7), name: me.name, message: v, created_at: new Date().toISOString() };
+  const res=await supabaseCall('POST','thanks','',row);
+  if(res===null){ toast('No se pudo enviar, prob\u00e1 de nuevo'); return; }
+  inp.value='';
+  await loadShared();
+  toast('\u00a1Gracias enviado! \u{1F64F}');
+  render();
+}
 
 async function join(){
   const v=document.getElementById("nameInput").value.trim();
