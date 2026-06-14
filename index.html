@@ -796,9 +796,25 @@ async function sendThanks(){
   render();
 }
 
+const normName = s => (s||'').trim().toLowerCase().replace(/\s+/g,' ');
+
 async function join(){
   const v=document.getElementById("nameInput").value.trim();
   if(!v){ toast("Escribí tu nombre"); return; }
+  // Traer jugadores actuales y ver si ya existe alguien con ese nombre (sin importar mayúsculas/espacios)
+  const all = await supabaseCall('GET','players','?select=id,name') || [];
+  const found = all.find(p => normName(p.name) === normName(v));
+  if(found){
+    // Recuperar identidad existente en vez de crear un duplicado
+    me = { id: found.id, name: found.name };
+    localStorage.setItem("me", JSON.stringify(me));
+    await loadShared();
+    myPicks = allPicks[me.id] || {};
+    toast("¡Hola de nuevo, "+me.name+"! 👋");
+    render();
+    return;
+  }
+  // Nombre nuevo: crear jugador
   me={ id: Date.now().toString(36)+Math.random().toString(36).slice(2,7), name:v };
   const res = await supabaseCall('POST', 'players', '', {id:me.id, name:me.name});
   if(res === null){ toast("Error al crear jugador, intentá de nuevo"); return; }
@@ -874,6 +890,8 @@ function toast(msg){
     const meRaw = localStorage.getItem("me");
     if(meRaw){ try{ me=JSON.parse(meRaw); }catch(e){ me=null; } }
     await loadShared();
+    // Si el usuario guardado ya no existe (p. ej. tras unificar duplicados), pedir el nombre de nuevo
+    if(me && !users.some(u=>u.id===me.id)){ me=null; try{ localStorage.removeItem("me"); }catch(e){} }
     if(me && allPicks[me.id]) myPicks=allPicks[me.id];
     render();
   }catch(e){
