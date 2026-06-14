@@ -260,6 +260,29 @@
   .ares .ap.clear{font-size:13px;font-family:'Inter';font-weight:700}
   .ares .ap.clear.sel{background:var(--surface2);color:var(--txt);border-color:var(--border2)}
 
+  /* ---------- PLAYER SELECT ---------- */
+  .playerlist{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;max-height:300px;overflow-y:auto}
+  .playeropt{
+    display:flex;align-items:center;gap:12px;
+    background:var(--surface);border:1px solid var(--border);border-radius:12px;
+    padding:12px 14px;cursor:pointer;transition:.15s;text-align:left;width:100%;
+  }
+  .playeropt:active{transform:scale(.98)}
+  .playeropt:hover{border-color:var(--border2);background:var(--surface2)}
+  .playeropt .av{
+    width:38px;height:38px;border-radius:50%;background:var(--amber);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Bebas Neue';font-size:18px;color:#1a1305;flex-shrink:0;
+  }
+  .playeropt .info{flex:1;min-width:0}
+  .playeropt .pname{font-size:15px;font-weight:700;color:var(--txt)}
+  .playeropt .ppicks{font-size:11px;color:var(--txt2);margin-top:1px}
+  .playeropt .arr{color:var(--txt3);font-size:18px}
+  .divider{display:flex;align-items:center;gap:10px;margin:6px 0 12px;color:var(--txt3);font-size:12px;font-weight:700}
+  .divider span{flex:1;height:1px;background:var(--border)}
+  .newplayer{margin-top:2px;display:flex;flex-direction:column;gap:10px}
+  .onb .loading-players{color:var(--txt2);font-size:13px;padding:20px 0;text-align:center}
+
   /* ---------- PREMIOS ---------- */
   .prizehero{
     position:relative;overflow:hidden;text-align:center;
@@ -537,18 +560,41 @@ function headerHTML(){
 }
 
 function renderOnboarding(){
+  // Construir lista de jugadores ordenada alfabéticamente
+  const sorted = [...users].sort((a,b)=>a.name.localeCompare(b.name));
+  const picksCount = uid => Object.keys(allPicks[uid]||{}).length;
+
+  let playerItems = '';
+  if(sorted.length === 0){
+    playerItems = `<div class="loading-players">Aún no hay jugadores registrados.</div>`;
+  } else {
+    playerItems = sorted.map(u => {
+      const pc = picksCount(u.id);
+      const av = u.name.trim()[0].toUpperCase();
+      return `<button class="playeropt" onclick="loginAs('${u.id}','${u.name.replace(/'/g,"\\'")}')">
+        <div class="av">${av}</div>
+        <div class="info">
+          <div class="pname">${esc(u.name)}</div>
+          <div class="ppicks">${pc > 0 ? pc+' pronósticos cargados' : 'Sin pronósticos todavía'}</div>
+        </div>
+        <div class="arr">›</div>
+      </button>`;
+    }).join('');
+  }
+
   app.innerHTML = `<div class="wrap"><div class="onb">
     <div class="ball-big">⚽</div>
     <h2>PRODE MUNDIAL <span class="yr">FAMILIAS MZM</span></h2>
-    <p>Poné tu nombre para entrar y cargar tus pronósticos.</p>
-    <div class="field">
+    <p>¿Quién sos?</p>
+    <div class="playerlist">${playerItems}</div>
+    <div class="divider"><span></span>soy nuevo<span></span></div>
+    <div class="newplayer">
       <input id="nameInput" type="text" placeholder="Tu nombre" maxlength="20" autocomplete="off">
-      <button class="btn btn-amber" onclick="join()">Entrar al prode →</button>
+      <button class="btn btn-amber" onclick="join()">Crear jugador →</button>
     </div>
   </div></div>`;
   const inp=document.getElementById("nameInput");
-  inp.focus();
-  inp.addEventListener("keydown",e=>{ if(e.key==="Enter") join(); });
+  if(inp){ inp.addEventListener("keydown",e=>{ if(e.key==="Enter") join(); }); }
 }
 
 /* ---------- VIEW: MI PRODE ---------- */
@@ -793,6 +839,15 @@ async function sendThanks(){
   inp.value='';
   await loadShared();
   toast('\u00a1Gracias enviado! \u{1F64F}');
+  render();
+}
+
+async function loginAs(id, name){
+  me = { id, name };
+  localStorage.setItem("me", JSON.stringify(me));
+  myPicks = allPicks[id] || {};
+  toast("¡Hola, "+name+"! 👋");
+  tab = "prode";
   render();
 }
 
