@@ -1109,7 +1109,7 @@ async function logout(){
   render();
 }
 
-function findMatch(mid){ return M.find(x=>x.id===mid) || K.find(x=>x.id===mid); }
+function findMatch(mid){ return M.find(x=>x.id===mid) || K.find(x=>x.id===mid) || O.find(x=>x.id===mid); }
 
 async function savePick(mid, val){
   myPicks[mid] = val;
