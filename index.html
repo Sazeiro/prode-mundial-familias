@@ -487,6 +487,14 @@ const O = [
  ["o08","SUI","COL","2026-07-07T17:00:00-03:00"]
 ].map(a=>({id:a[0],group:"O8",home:a[1],away:a[2],ko:a[3],knockout:true}));
 
+// Cuartos de final (9-11 jul). Eliminación directa: sin empate.
+const Q = [
+ ["q01","FRA","MAR","2026-07-09T17:00:00-03:00"],
+ ["q02","ESP","BEL","2026-07-10T16:00:00-03:00"],
+ ["q03","NOR","ENG","2026-07-11T18:00:00-03:00"],
+ ["q04","ARG","SUI","2026-07-11T22:00:00-03:00"]
+].map(a=>({id:a[0],group:"Q4",home:a[1],away:a[2],ko:a[3],knockout:true}));
+
 const PTS_WIN = 3;
 const ALWAYS_OPEN = [];
 
@@ -586,7 +594,7 @@ function calcPoints(pick, result, knockout){
 
 function standings(){
   const played = Object.keys(results).filter(k=>results[k]);
-  const koIds = new Set([...K.map(m=>m.id), ...O.map(m=>m.id)]);
+  const koIds = new Set([...K.map(m=>m.id), ...O.map(m=>m.id), ...Q.map(m=>m.id)]);
   return users.map(u=>{
     let pts=0, ac=0;
     const picks = allPicks[u.id]||{};
@@ -679,11 +687,23 @@ function viewProde(){
     <div class="koBanner-ico">⚔️🏆</div>
     <div class="koBanner-tx">
       <div class="koBanner-t">¡Arrancó la fase de eliminación!</div>
-      <div class="koBanner-s">Octavos: 4–7 jul · Dieciseisavos: 28 jun–3 jul · eliminación directa</div>
+      <div class="koBanner-s">Cuartos: 9–11 jul · Octavos: 4–7 jul · eliminación directa</div>
     </div>
   </div>`;
 
-  // Octavos de final — antes que los dieciseisavos
+  // Cuartos de final — lo más nuevo, primero de todo
+  html += `<div class="dayhead" style="margin-top:14px"><span class="dot" style="background:#3D7BFF"></span><span class="lbl" style="color:#3D7BFF">🔥 CUARTOS DE FINAL</span><span class="line"></span></div>`;
+  let lastDayQ=null;
+  for(const m of Q){
+    const dk=dayKey(m.ko);
+    if(dk!==lastDayQ){
+      html+=`<div class="dayhead"><span class="dot" style="background:#3D7BFF"></span><span class="lbl">${dayLabel(m.ko)}</span><span class="line"></span></div>`;
+      lastDayQ=dk;
+    }
+    html+=matchCard(m);
+  }
+
+  // Octavos de final — después
   html += `<div class="dayhead" style="margin-top:14px"><span class="dot" style="background:var(--amber)"></span><span class="lbl" style="color:var(--amber)">⚽ OCTAVOS DE FINAL</span><span class="line"></span></div>`;
   let lastDayO=null;
   for(const m of O){
@@ -853,6 +873,24 @@ function viewFixture(){
     <div class="grouphd" style="background:linear-gradient(90deg,var(--green-dim),var(--surface2))"><span class="g" style="color:var(--green)">🏆 DIECISEISAVOS</span><span class="teams">28 jun – 3 jul</span></div>
     <div class="fx">${korows}</div>
   </div>`;
+  // Cuartos de final
+  let qrows="";
+  for(const m of Q){
+    const res=results[m.id];
+    const h=T[m.home],a=T[m.away];
+    let score = started(m.ko)?(res? scoreTextKO(res,m):"vs"):"vs";
+    const played = !!res;
+    qrows+=`<div class="fxrow">
+      <div class="fxteam"><span class="fl">${h.f}</span>${m.home}</div>
+      <div><div class="fxscore ${played?'played':''}">${score}</div><div class="fxdate">${dayLabel(m.ko).slice(4)} ${timeLabel(m.ko)}</div></div>
+      <div class="fxteam away">${m.away}<span class="fl">${a.f}</span></div>
+    </div>`;
+  }
+  html+=`<div class="group" style="border-color:#2a3f6b">
+    <div class="grouphd" style="background:linear-gradient(90deg,#1a2c50,var(--surface2))"><span class="g" style="color:#3D7BFF">🔥 CUARTOS</span><span class="teams">9 – 11 jul</span></div>
+    <div class="fx">${qrows}</div>
+  </div>`;
+
   // Octavos de final
   let orows="";
   for(const m of O){
@@ -873,10 +911,9 @@ function viewFixture(){
 
   html+=`<div class="ko">
     <div class="ico">🏆</div>
-    <h3>Cuartos en adelante</h3>
-    <p>El cuadro de cuartos, semis y final se suma a medida que se conocen los cruces.</p>
+    <h3>Semis y final</h3>
+    <p>El cuadro de semifinales y la final se suma a medida que se conocen los cruces.</p>
     <div class="kostages">
-      <span class="kostage">Cuartos · 9-12 jul</span>
       <span class="kostage">Semis · 14-15 jul</span><span class="kostage">Final · 19 jul</span>
     </div>
   </div>`;
@@ -982,6 +1019,14 @@ function viewAdmin(){
   for(const m of M){
     const dk=dayKey(m.ko);
     if(dk!==lastDay){ html+=`<div class="dayhead" style="margin-top:16px"><span class="dot"></span><span class="lbl">${dayLabel(m.ko)}</span><span class="line"></span></div>`; lastDay=dk; }
+    html+=renderAdminMatch(m);
+  }
+
+  html += `<div class="dayhead" style="margin-top:26px"><span class="dot" style="background:#3D7BFF"></span><span class="lbl">🔥 CUARTOS DE FINAL</span><span class="line"></span></div>`;
+  let lastDayQ2=null;
+  for(const m of Q){
+    const dk=dayKey(m.ko);
+    if(dk!==lastDayQ2){ html+=`<div class="dayhead"><span class="dot" style="background:#3D7BFF"></span><span class="lbl">${dayLabel(m.ko)}</span><span class="line"></span></div>`; lastDayQ2=dk; }
     html+=renderAdminMatch(m);
   }
 
@@ -1109,7 +1154,7 @@ async function logout(){
   render();
 }
 
-function findMatch(mid){ return M.find(x=>x.id===mid) || K.find(x=>x.id===mid) || O.find(x=>x.id===mid); }
+function findMatch(mid){ return M.find(x=>x.id===mid) || K.find(x=>x.id===mid) || O.find(x=>x.id===mid) || Q.find(x=>x.id===mid); }
 
 async function savePick(mid, val){
   myPicks[mid] = val;
