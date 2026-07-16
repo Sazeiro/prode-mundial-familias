@@ -501,6 +501,11 @@ const S = [
  ["s02","ENG","ARG","2026-07-15T16:00:00-03:00"]
 ].map(a=>({id:a[0],group:"SF",home:a[1],away:a[2],ko:a[3],knockout:true}));
 
+// Final (19 jul). Eliminación directa: sin empate.
+const F = [
+ ["f01","ESP","ARG","2026-07-19T16:00:00-03:00"]
+].map(a=>({id:a[0],group:"FN",home:a[1],away:a[2],ko:a[3],knockout:true}));
+
 const PTS_WIN = 3;
 const ALWAYS_OPEN = [];
 
@@ -600,7 +605,7 @@ function calcPoints(pick, result, knockout){
 
 function standings(){
   const played = Object.keys(results).filter(k=>results[k]);
-  const koIds = new Set([...K.map(m=>m.id), ...O.map(m=>m.id), ...Q.map(m=>m.id), ...S.map(m=>m.id)]);
+  const koIds = new Set([...K.map(m=>m.id), ...O.map(m=>m.id), ...Q.map(m=>m.id), ...S.map(m=>m.id), ...F.map(m=>m.id)]);
   return users.map(u=>{
     let pts=0, ac=0;
     const picks = allPicks[u.id]||{};
@@ -688,16 +693,23 @@ function viewProde(){
   const total = M.length;
   const pct = Math.round(doneByMe/total*100);
 
-  // Banner: semifinales
+  // Banner: final
   let html = `<div class="koBanner">
     <div class="koBanner-ico">⚔️🏆</div>
     <div class="koBanner-tx">
-      <div class="koBanner-t">¡Semifinales del Mundial!</div>
-      <div class="koBanner-s">Semis: 14–15 jul · Final: 19 jul · eliminación directa</div>
+      <div class="koBanner-t">¡Llegó la final del Mundial!</div>
+      <div class="koBanner-s">Dom 19 jul · 16:00 · España vs Argentina</div>
     </div>
   </div>`;
 
-  // Semifinales — lo más nuevo, primero de todo
+  // Final — lo más nuevo, primero de todo
+  html += `<div class="dayhead" style="margin-top:14px"><span class="dot" style="background:var(--amber)"></span><span class="lbl" style="color:var(--amber)">👑 FINAL</span><span class="line"></span></div>`;
+  for(const m of F){
+    html+=`<div class="dayhead"><span class="dot" style="background:var(--amber)"></span><span class="lbl">${dayLabel(m.ko)}</span><span class="line"></span></div>`;
+    html+=matchCard(m);
+  }
+
+  // Semifinales — después
   html += `<div class="dayhead" style="margin-top:14px"><span class="dot" style="background:#FF6B9D"></span><span class="lbl" style="color:#FF6B9D">🏆 SEMIFINALES</span><span class="line"></span></div>`;
   let lastDayS=null;
   for(const m of S){
@@ -874,7 +886,25 @@ function othersHTML(m){
 function viewFixture(){
   let html="";
 
-  // Semifinales primero
+  // Final primero
+  let frows="";
+  for(const m of F){
+    const res=results[m.id];
+    const h=T[m.home],a=T[m.away];
+    let score = started(m.ko)?(res? scoreTextKO(res,m):"vs"):"vs";
+    const played = !!res;
+    frows+=`<div class="fxrow">
+      <div class="fxteam"><span class="fl">${h.f}</span>${m.home}</div>
+      <div><div class="fxscore ${played?'played':''}">${score}</div><div class="fxdate">${dayLabel(m.ko).slice(4)} ${timeLabel(m.ko)}</div></div>
+      <div class="fxteam away">${m.away}<span class="fl">${a.f}</span></div>
+    </div>`;
+  }
+  html+=`<div class="group" style="border-color:var(--amber-dim)">
+    <div class="grouphd" style="background:linear-gradient(90deg,var(--amber-dim),var(--surface2))"><span class="g" style="color:var(--amber)">👑 FINAL</span><span class="teams">Dom 19 jul · 16:00</span></div>
+    <div class="fx">${frows}</div>
+  </div>`;
+
+  // Semifinales
   let srows="";
   for(const m of S){
     const res=results[m.id];
@@ -944,15 +974,6 @@ function viewFixture(){
   html+=`<div class="group" style="border-color:var(--green-dim)">
     <div class="grouphd" style="background:linear-gradient(90deg,var(--green-dim),var(--surface2))"><span class="g" style="color:var(--green)">🏆 DIECISEISAVOS</span><span class="teams">28 jun – 3 jul</span></div>
     <div class="fx">${korows}</div>
-  </div>`;
-
-  html+=`<div class="ko">
-    <div class="ico">🏆</div>
-    <h3>Final</h3>
-    <p>El cuadro de la final se suma cuando se conozcan los semifinalistas.</p>
-    <div class="kostages">
-      <span class="kostage">Final · 19 jul</span>
-    </div>
   </div>`;
 
   // Fase de grupos después
@@ -1026,6 +1047,12 @@ function viewAdmin(){
     </div></div>`;
   }
   let html=`<div class="adminbar"><span class="ic">⚙️</span><div class="tx"><b>Modo admin</b>Cargá el resultado de cada partido. Se guarda al instante.</div></div>`;
+
+  html += `<div class="dayhead" style="margin-top:16px"><span class="dot" style="background:var(--amber)"></span><span class="lbl" style="color:var(--amber)">👑 FINAL</span><span class="line"></span></div>`;
+  for(const m of F){
+    html+=`<div class="dayhead"><span class="dot" style="background:var(--amber)"></span><span class="lbl">${dayLabel(m.ko)}</span><span class="line"></span></div>`;
+    html+=renderAdminMatch(m);
+  }
 
   html += `<div class="dayhead" style="margin-top:16px"><span class="dot" style="background:#FF6B9D"></span><span class="lbl" style="color:#FF6B9D">🏆 SEMIFINALES</span><span class="line"></span></div>`;
   let lastDayS=null;
@@ -1199,7 +1226,7 @@ async function logout(){
   render();
 }
 
-function findMatch(mid){ return M.find(x=>x.id===mid) || S.find(x=>x.id===mid) || Q.find(x=>x.id===mid) || O.find(x=>x.id===mid) || K.find(x=>x.id===mid); }
+function findMatch(mid){ return M.find(x=>x.id===mid) || F.find(x=>x.id===mid) || S.find(x=>x.id===mid) || Q.find(x=>x.id===mid) || O.find(x=>x.id===mid) || K.find(x=>x.id===mid); }
 
 async function savePick(mid, val){
   myPicks[mid] = val;
